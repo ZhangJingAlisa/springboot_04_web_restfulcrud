@@ -1,7 +1,10 @@
 package com.alisa.springboot.config;
 
+import com.alisa.springboot.component.LoginHandlerInterceptor;
+import com.alisa.springboot.component.MyLocaleResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.*;
 
 /**
@@ -13,7 +16,7 @@ import org.springframework.web.servlet.config.annotation.*;
 //使用WebMvcConfigurerAdapter可以来扩展SpringMVC的功能
 //@EnableWebMvc
 @Configuration
-public class MyMvcConfig extends WebMvcConfigurationSupport {
+public class MyMvcConfig implements WebMvcConfigurer {
 //    @Override
 //    public void addViewControllers(ViewControllerRegistry registry) {
 //        // super.addViewControllers(registry);
@@ -26,26 +29,41 @@ public class MyMvcConfig extends WebMvcConfigurationSupport {
      * @param registry
      */
     @Override
-    protected void addViewControllers(ViewControllerRegistry registry) {
-        //浏览器发送/alisa 请求会来到success页面
-        registry.addViewController("/alisa").setViewName("success");
+    public void addViewControllers(ViewControllerRegistry registry) {
+        //浏览器发送/ 请求会来到login页面
+        registry.addViewController("/").setViewName("login");
+    }
+
+    @Bean //将组件注册在容器
+    public WebMvcConfigurer webMvcConfigurer(){
+        WebMvcConfigurer adapter = new WebMvcConfigurer() {
+            @Override
+            public void addViewControllers(ViewControllerRegistry registry) {
+                //添加视图映射
+                registry.addViewController("/").setViewName("login");
+                registry.addViewController("/index.html").setViewName("login");
+                registry.addViewController("/main.html").setViewName("dashboard");
+            }
+
+            //注册拦截器
+
+            @Override
+            public void addInterceptors(InterceptorRegistry registry) {
+                //addPathPatterns("/**")    添加拦截任意多层路径下的任意请求
+                //excludePathPatterns("")    排除拦截登陆页面的请求
+                registry.addInterceptor(new LoginHandlerInterceptor()).addPathPatterns("/**")
+                        .excludePathPatterns("/index.html","/","/user/login");
+            }
+        };
+        return adapter;
     }
 
     /**
-     *
+     * 配置区域解析器
      * @return
      */
-    //所有的WebMvcConfigurerAdapter组件都会一起起作用
-//    @Bean //将组件注册在容器
-//    public WebMvcConfigurerAdapter webMvcConfigurerAdapter(){
-//        WebMvcConfigurerAdapter adapter = new WebMvcConfigurerAdapter() {
-//            @Override
-//            public void addViewControllers(ViewControllerRegistry registry) {
-//                //添加视图映射
-//                registry.addViewController("/").setViewName("index");
-//                registry.addViewController("/index.html").setViewName("index");
-//            }
-//        };
-//        return adapter;
-//    }
+    @Bean
+    public LocaleResolver localeResolver(){
+        return new MyLocaleResolver();
+    }
 }

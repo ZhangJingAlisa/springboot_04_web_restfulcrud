@@ -32,8 +32,8 @@ public class HelloController {
      * 访问静态资源在templates中查找index.html
      * @return
      */
-    @RequestMapping({"/","/index"})
-    public String index(){
-        return "index";
+    @RequestMapping({"/","/index.html"})
+    public String login(){
+        return "login";
     }
 }
